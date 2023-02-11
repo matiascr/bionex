@@ -1,6 +1,4 @@
 defmodule Swarm do
-  use GenServer
-
   defstruct [:num_ants, :b_up, :b_down, :phi_p, :phi_g]
 
   @type t :: %__MODULE__{
@@ -11,12 +9,78 @@ defmodule Swarm do
           phi_g: float
         }
 
-  @impl true
-  def init(num_ants: num_ants, b_up: b_up, b_down: b_down, phi_p: phi_p, phi_g: phi_g) do
-    {:ok, %__MODULE__{num_ants: num_ants}}
+  opts = [
+    b_up: [
+      type: :float,
+      default: 1.0,
+      doc: """
+      """
+    ],
+    b_down: [
+      type: :float,
+      default: -1.0,
+      doc: """
+      """
+    ],
+    phi_p: [
+      type: :float,
+      default: 0.2,
+      doc: """
+      """
+    ],
+    phi_g: [
+      type: :float,
+      default: 0.2,
+      doc: """
+      """
+    ]
+  ]
+
+  @opts_schema NimbleOptions.new!(opts)
+
+  def init(num_ants, opts \\ []) do
+    opts = NimbleOptions.validate!(opts, @opts_schema)
+    Kernel.struct!(%__MODULE__{num_ants: num_ants}, opts)
   end
 
-  def initialize_particles() do
+  def run(swarm, num_iter \\ 10) do
+    initialize_particles(swarm)
+  end
+
+  def initialize_particles(
+        swarm = %Swarm{
+          b_up: b_up,
+          b_down: b_down,
+          phi_p: phi_p,
+          phi_g: phi_g
+        }
+      ) do
+    swarm
+    |> create()
+    |> initialize()
+  end
+
+  def create(swarm) do
+    1..swarm.num_ants
+    |> Enum.map(fn _ ->
+      GenServer.start_link(
+        Particle,
+        %Particle{
+          swarm: self(),
+          b_up: swarm.b_up,
+          b_down: swarm.b_down,
+          phi_p: swarm.phi_p,
+          phi_g: swarm.phi_g
+        }
+      )
+      |> elem(1)
+    end)
+  end
+
+  def initialize(pids) do
+    pids
+    |> Enum.map(fn pid -> Task.async(fn -> GenServer.call(pid, :initialize) end) end)
+    |> Task.await_many()
   end
 
   def set_local_best() do
