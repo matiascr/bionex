@@ -1,11 +1,12 @@
 defmodule Particle do
   use GenServer
 
-  defstruct [:swarm, :pos, :v, :b_up, :b_down, :phi_p, :phi_g]
+  defstruct [:swarm, :pos, :best, :v, :b_up, :b_down, :phi_p, :phi_g]
 
   @type t :: %__MODULE__{
           swarm: pid(),
           pos: Nx.Tensor.t(),
+          best: Nx.Tensor.t(),
           v: Nx.Tensor.t(),
           b_up: number(),
           b_down: number(),
@@ -28,8 +29,9 @@ defmodule Particle do
 
   def initialize(particle) do
     key = Nx.Random.key(:rand.uniform(256))
-    {pos, _new_key} = Nx.Random.uniform(key, particle.b_down, particle.b_up, shape: {2})
+    {pos, new_key} = Nx.Random.uniform(key, particle.b_down, particle.b_up, shape: {2})
+    {v, _} = Nx.Random.uniform(new_key, particle.b_down, particle.b_up, shape: {2})
 
-    %__MODULE__{particle | pos: pos}
+    %__MODULE__{particle | pos: pos, best: pos, v: v}
   end
 end

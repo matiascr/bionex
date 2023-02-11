@@ -47,14 +47,7 @@ defmodule Swarm do
     initialize_particles(swarm)
   end
 
-  def initialize_particles(
-        swarm = %Swarm{
-          b_up: b_up,
-          b_down: b_down,
-          phi_p: phi_p,
-          phi_g: phi_g
-        }
-      ) do
+  def initialize_particles(swarm) do
     swarm
     |> create()
     |> initialize()
@@ -79,7 +72,7 @@ defmodule Swarm do
 
   def initialize(pids) do
     pids
-    |> Enum.map(fn pid -> Task.async(fn -> GenServer.call(pid, :initialize) end) end)
+    |> Enum.map(&Task.async(fn -> GenServer.call(&1, :initialize) end))
     |> Task.await_many()
   end
 
