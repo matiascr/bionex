@@ -1,8 +1,8 @@
 defmodule Swarm do
-  defstruct [:num_ants, :b_up, :b_down, :phi_p, :phi_g, :w]
+  defstruct [:num_particles, :b_up, :b_down, :phi_p, :phi_g, :w]
 
   @type t :: %__MODULE__{
-          num_ants: integer,
+          num_particles: integer,
           b_up: number,
           b_down: number,
           phi_p: float,
@@ -22,9 +22,9 @@ defmodule Swarm do
   @opts_schema NimbleOptions.new!(opts)
 
   @spec init(pos_integer(), keyword()) :: __MODULE__.t()
-  def init(num_ants, opts \\ []) do
+  def init(num_particles, opts \\ []) do
     opts = NimbleOptions.validate!(opts, @opts_schema)
-    Kernel.struct!(%__MODULE__{num_ants: num_ants}, opts)
+    Kernel.struct!(%__MODULE__{num_particles: num_particles}, opts)
   end
 
   @spec run(__MODULE__.t(), pos_integer(), fun()) :: any()
@@ -59,7 +59,7 @@ defmodule Swarm do
 
   @spec create(__MODULE__.t(), fun()) :: [pid()]
   def create(swarm, fun) do
-    1..swarm.num_ants
+    1..swarm.num_particles
     |> Enum.map(fn _ ->
       GenServer.start_link(
         Particle,
