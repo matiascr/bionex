@@ -23,7 +23,8 @@ defmodule Bionex.MixProject do
     [
       {:nx, ">= 0.4.2"},
       # {:kino, ">= 0.8.1"},
-      {:nimble_options, ">= 0.5.2"}
+      {:nimble_options, ">= 0.5.2"},
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
     ]
   end
 end
